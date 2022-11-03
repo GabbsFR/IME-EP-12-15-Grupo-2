@@ -115,7 +115,7 @@ library(stringr)
   # Analice la primera pregunta abordada en el ejercicio práctico 11, con los mismos
   # datos, utilizando un método robusto adecuado.
 
-  # Enunciado Pregunta N°1 del EP 11
+# Enunciado Pregunta N°1 del EP 11
 
   # Un alumno del curso de IMEH (Inferencia y Modelos Estadísticos en Halloween) de
   # la Universidad de Comediantes de Chile desea saber si la media de edad de las 
@@ -126,6 +126,7 @@ library(stringr)
   
   # Estadístico de interés: la media de la edad de las personas.
   
+# Hipotesis:
   # Planteamiento de Hipótesis. 
   # H0: La edad media de las personas heterosexuales que viven en la Región de Valparaíso y en la Región
   # del Biobío es la misma.
@@ -211,14 +212,6 @@ library(stringr)
   # datos, utilizando un método robusto adecuado.
   
   
-  # Propongan una pregunta de investigación original, que involucre la comparación
-  # de las medias de más de dos grupos independientes (más abajo se dan unos
-  # ejemplos).Fijando una semilla distinta a la anterior, seleccionen una muestra
-  # aleatoria de hogares (400 < n < 600) y respondan la pregunta propuesta
-  # utilizando bootstrapping. Solo por ejercicio académico, aplique un análisis
-  # post-hoc con bootstrapping aunque este no sea necesario.
-  
-  
   # En promedio, el ingreso per cápita (ytotcorh / numper) en Chile es similar en
   # hogares donde el nivel educacional (educ) del jefe o jefa del hogar es:
   # - Profesional Completo
@@ -267,4 +260,54 @@ library(stringr)
   muestra.postradoCompleto <- 
     postgradoCompleto.perCapita[sample(1:nrow(postgradoCompleto.perCapita), 
                                        150), ]
-
+  
+  # Se genera un dataframe con las muestras que se requieren utilizar.
+  #muestraProfesional <- data.frame(muestra.profesionalCompleto,muestra.postradoIncompleto,
+  #                              muestra.postradoCompleto)
+  ingresos <- c(muestra.profesionalCompleto, muestra.postradoIncompleto,  muestra.postradoCompleto)
+  grado <- c(rep("Profesional Completo", length(muestra.profesionalCompleto)),
+             rep("Postgrado Incompleto", length(muestra.postradoIncompleto)),
+             rep("Postgrado Completo", length(muestra.profesionalCompleto)))
+  
+  datos_pregunta_3 <- data.frame(ingresos, grado)
+  # Fijar nivel de significación.
+  alfa <- 0.05
+  
+  # Comparar los diferentes algoritmos usando medias truncadas .
+  cat (" Comparación entre grupos usando medias truncadas \n\n")
+  gamma <- 0.2
+  
+  set.seed(999)
+  
+  medias_truncadas<-t1way(ingresos ~ grado , data = datos_pregunta_3, tr = gamma,
+                          alpha = alfa )
+  
+  print(medias_truncadas)
+  
+  if( medias_truncadas $p.value < alfa ) {
+  cat ("\ nProcedimiento post - hoc\n\n")
+  set.seed(999)
+    post_hoc <- lincon(ingresos ~ grado , data = datos_pregunta_3 , tr = gamma ,
+                          alpha = alfa )
+    print (post_hoc)
+  }
+  # Comparar los diferentes algoritmos usando bootstrap .
+  cat(" Comparación entre grupos usando bootstrap \n\n")
+  muestras <- 999
+  set.seed(999)
+  bootstrap<-t1waybt(ingresos ~ grado , data = datos_pregunta_3 , tr = gamma ,
+                     nboot = muestras)
+  #
+  print(medias_truncadas)
+  if(medias_truncadas $p.value < alfa ){
+    cat ("\ nProcedimiento post - hoc\n\n")
+    set.seed(666)
+    post_hoc <- mcppb20(ingresos ~ grado , data = datos_pregunta_3 , tr = gamma ,
+                        nboot = muestras)
+    # 
+    print(post_hoc)
+  }
+  
+  
+  
+  

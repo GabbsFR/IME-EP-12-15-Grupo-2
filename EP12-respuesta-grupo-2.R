@@ -51,16 +51,16 @@ library(stringr)
   # Dataframe de los datos
   Instancia_A <- c(137, 19, 87, 150, 18, 91, 147, 139, 69, 21)
   Tiempo_A <- c(210041, 783108, 834565, 70599, 8576989, 251843, 4428151, 48667,
-               48705, 885722)
+                48705, 885722)
   Instancia_B <- c(11, 64, 104, 82, 96, 175, 84, 106, 121, 6)
   Tiempo_B <- c(2830464, 180141, 994830, 6684497, 35974, 5743260, 4629726, 48408,
-               2196277, 92932)
+                2196277, 92932)
   # Se sabe que las muestras son independientes entre si, por lo cual, vamos a
   # separar los datos en datos_A (para las Instancia_A y Tiempo_A) y datos_B (instancia_B 
   # y Tiempo_B) con el fin de evauluar la condición de normalidad, entre las muestras.
   datos_A <- data.frame(Instancia_A, Tiempo_A)
   datos_B <- data.frame(Instancia_B, Tiempo_B)
-  
+
   # Se hace la prueba de shapiro wilk, para verificar que las muestras cumplen con
   # el supuesto de normalidad.
   prueba_normalidad_A <- shapiro.test(datos_A$Tiempo_A)
@@ -69,26 +69,22 @@ library(stringr)
   # Se muestra los resultados del test shapiro wilk
   print(prueba_normalidad_A)
   print(prueba_normalidad_B)
-  
+
   # Se logra apreciar con la prueba shapiro wilk, que uno de los tiempos (tiempo A)
   # No cumple con la condición de normalidad, por lo cual, se debe aplicar una transformación
+  
   # para este caso, se utiliza la transformación logaritmica, porque asegura que la
   # distribución se asemeje a la normal.
-  # Para ello, se debe aplicar la transformación para ambas muestras.
+  # se debe aplicar la transformación para ambas muestras.
   logTiempoA <- log(datos_A$Tiempo_A)
   logTiempoB <- log(datos_B$Tiempo_B)
-  # Se almacenan todos los datos en la variable datos, para su posterior grafico,
-  datos <- data.frame(Instancia_A, Tiempo_A,logTiempoA, Instancia_B, Tiempo_B,logTiempoB)
-  # Se aplica la prueba shapiro wilk para verificar la condición de normalidad
+  
+  # Se aplica la prueba shapiro wilk para verificar la condición de normalidad.
   print(shapiro.test(logTiempoA))
   print(shapiro.test(logTiempoB))
-
+  
   # Se demuestra que ahora si se cumple la condición de normalidad en ambas muestras
   # de tiempo (Tiempo_A , Tiempo_B).
-
-  # Se grafica para visualizar los datos tanto del tiempo antes de aplicar la transformada
-  # como despues de aplicarla. 
- 
   # Se realiza la prueba t de student para 2 muestras independientes.
   # con el fin de saber si los tiempos medios son iguales o distintos.
   prueba_t <- t.test(x = logTiempoA,
@@ -100,15 +96,16 @@ library(stringr)
 
   # Se muestra los resultados de la prueba t de student
   print(prueba_t)
- 
+
 # Resultado:
   # Como resultado, obtenemos un valor de p = o,5634, por lo que se observa, dicho
   # valor es mayor al alfa establecido (0.01).
- 
-# Conclusión
-  # Como p = 0.5634 > alfa = 0.01, se concluye que  
-  # Se rechaza la hipotesis nula a favor de la anternativa, en consecuencia, si 
-  # existe diferencia entre los tiempos medios de los algoritmos A y B.
+
+  # Conclusión
+  # Como p = 0.5634 > alfa = 0.01
+  # Se rechaza la hipotesis nula a favor de la anternativa, en consecuencia, se 
+  # puede concluir con un 99% de confianza que si  existe diferencia entre los 
+  # tiempos medios de los algoritmos A y B.
 
 
 #-------------------------- Pregunta N°2  --------------------------------------

@@ -138,7 +138,7 @@ library(stringr)
   # H0: uA = uB 
   # HA: uA != uB
   set.seed(3331)
-  datos <- read.csv2(file.choose(), stringsAsFactors = FALSE)
+  datos <- read.csv2(file.choose(), stringsAsFactors = TRUE, check.names = F)
   
   # Se aplica un filtro para obtener los datos de la personas que viven en la 
   # Región de Valparaíso y la Región del Biobío.

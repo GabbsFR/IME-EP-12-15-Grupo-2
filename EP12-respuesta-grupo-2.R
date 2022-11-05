@@ -138,7 +138,7 @@ library(stringr)
   # H0: uA = uB 
   # HA: uA != uB
   set.seed(3331)
-  datos <- read.csv2(file.choose(), stringsAsFactors = TRUE, check.names = F)
+  datos <- read.csv2(file.choose(), encoding = "latin1", stringsAsFactors = TRUE, check.names = F)
   
   # Se aplica un filtro para obtener los datos de la personas que viven en la 
   # Región de Valparaíso y la Región del Biobío.
@@ -202,7 +202,10 @@ library(stringr)
   # Aplicar prueba de Yuen. 
   prueba <- yuen(edad ~ region, data = datos_pregunta_2, tr = gamma)
   print(prueba)
-
+  
+  # Como el p-value = 0.01291 < 0.05, se puede concluir que se rechaza la hipótesis nula, en favor
+  # de la hipótesis alternativa con un 95% de confianza. La edad media de las personas heterosexuales
+  # que viven en la Región de Valparaíso y en la Región del Biobío es distinta.
 
 #-------------------------- Pregunta N°3  --------------------------------------
   # Analice la segunda pregunta abordada en el ejercicio práctico 11, con los mismos 
@@ -280,7 +283,7 @@ library(stringr)
   alfa <- 0.05
   
   # Comparar los diferentes algoritmos usando medias truncadas .
-  cat (" Comparación entre grupos usando medias truncadas \n\n")
+  cat ("Comparación entre grupos usando medias truncadas \n\n")
   gamma <- 0.2
   
   set.seed(999)
@@ -290,15 +293,20 @@ library(stringr)
   
   print(medias_truncadas)
   
+  # Como p-value = 0 < 0.05, se rechaza H0 en favor de HA, por lo tanto,
+  # se podría decir con un 95% de confianza que el promedio per cápita es distinto
+  # para jefes o jefas de hogares con nivel educacional Profesional Completo, 
+  # Postgrado Incompleto o Postgrado Completo.
+  
   if( medias_truncadas $p.value < alfa ) {
-  cat ("\ nProcedimiento post - hoc\n\n")
+  cat ("\nProcedimiento post - hoc\n\n")
   set.seed(999)
     post_hoc <- lincon(ingresos ~ grado , data = datos_pregunta_3 , tr = gamma ,
                           alpha = alfa )
     print (post_hoc)
   }
   # Comparar los diferentes algoritmos usando bootstrap .
-  cat(" Comparación entre grupos usando bootstrap \n\n")
+  cat("Comparación entre grupos usando bootstrap \n\n")
   muestras <- 999
   set.seed(999)
   bootstrap<-t1waybt(ingresos ~ grado , data = datos_pregunta_3 , tr = gamma ,
@@ -306,7 +314,7 @@ library(stringr)
   #
   print(medias_truncadas)
   if(medias_truncadas $p.value < alfa ){
-    cat ("\ nProcedimiento post - hoc\n\n")
+    cat ("\nProcedimiento post - hoc\n\n")
     set.seed(666)
     post_hoc <- mcppb20(ingresos ~ grado , data = datos_pregunta_3 , tr = gamma ,
                         nboot = muestras)
@@ -314,6 +322,12 @@ library(stringr)
     print(post_hoc)
   }
   
-  
+  # Profesional Completo vs Postgrado Incompleto -> p-value = 0.13013
+  # Profesional Completo vs Postgrado Completo -> p-value = 0
+  # Postgrado Incompleto vs Postgrado Completo -> p-value = 0
+  # En base a la prueba post-hoc se puede concluir con un 95% de confianza que 
+  # los jefes de hogares con Postgrado Completo tienen distinto promedio de ingreso
+  # per cápita a comparación con los jefes de hogares con nivel educacional
+  # Postgrado Incompleto y Profesional Completo.
   
   

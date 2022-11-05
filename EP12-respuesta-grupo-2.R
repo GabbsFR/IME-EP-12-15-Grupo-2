@@ -4,7 +4,7 @@
 #   Ivan Zuñiga Quiroz
 #   Bastian Soto Jaña
 #   Gabriela Fernández Rodríguez
-#
+#   Nicolás Gabrielli
 
 # Librerias importadas.
 
@@ -215,6 +215,15 @@ library(stringr)
   # - Postgrado Incompleto
   # - Postgrado Completo
   
+  
+  # Planteamiento de Hipótesis. 
+  # H0: En promedio el ingreso per cápita es igual en hogares donde el nivel educacional
+  #     del jefe o jefa del hogar es Profesional Completo, Postgrado Incompleto
+  #     o Postgrado Completo.
+  
+  # HA: En promedio el ingreso per cápita es distinto en hogares donde el nivel educacional
+  #     del jefe o jefa del hogar es Profesional Completo, Postgrado Incompleto
+  #     o Postgrado Completo.
   
   # Filtrar datos
   

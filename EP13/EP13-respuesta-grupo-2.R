@@ -21,6 +21,126 @@ library(stringr)
 
 
 #-------------------------- Enunciado:  ----------------------------------------
+# Un estudio recolectó medidas anatómicas de 247 hombres y 260 mujeres 
+# (Heinz et al., 2003). Estas mediciones están disponibles en el archivo 
+# Body-EP12.csv que acompaña a este enunciado. El estudio incluyó nueve
+# mediciones del esqueleto (ocho diámetros y una profundidad de hueso a hueso) y
+# doce mediciones de grosor (circunferencias) que incluyen el tejido. 
 
+# La siguiente tabla detalla las variables registradas en este estudio: 
+
+# Columna                  Descripción                                          Unidad
+# Biacromial.diameter      Diámetro biacromial (a la altura de los hombros)       cm
+# Biiliac.diameter         Diámetro biiliaco (a la altura de la pelvis)           cm
+# Bitrochanteric.diameter  Diámetro bitrocantéreo (a la altura de las caderas)    cm
+# Chest.depth              Profundidad del pecho (entre la espina y el esternón   cm
+                          # a la altura de los pezones) 
+# Chest.diameter           Diámetro del pecho (a la altura de los pezones)        cm
+# Elbows.diameter          Suma de los diámetros de los codos                     cm
+# Wrists.diameter          Suma de los diámetros de las muñecas                   cm
+# Knees.diameter           Suma de los diámetros de las rodillas                  cm
+# Ankles.diameter          Suma de los diámetros de los tobillos                  cm
+# Shoulder.Girth           Grosor de los hombros sobre los músculos deltoides     cm
+# Chest.Girth              Grosor del pecho, sobre tejido mamario en mujeres y    cm
+                          # a la altura de los pezones en varones 
+# Waist.Girth              Grosor a la altura de la cintura                       cm
+# Navel.Girth              Grosor a la altura del ombligo                         cm
+# Hip.Girth                Grosor a la altura de las caderas                      cm
+# Thigh.Girth              Grosor promedio de ambos muslos bajo el pliegue del    cm
+                          # glúteo
+# Bicep.Girth              Grosor promedio de ambos bíceps, brazos flectados      cm
+# Forearm.Girth            Grosor promedio de ambos antebrazos, brazos            cm
+                          # extendidos palmas hacia arriba 
+# Knee.Girth               Grosor promedio de ambas rodillas, posición levemente  cm
+                          # flectada, medición arriba de la rótula 
+# Calf.Maximum.Girth       Grosor promedio de la parte más ancha de ambas         cm
+                          # pantorrillas
+# Ankle.Minimum.Girth      Grosor promedio de la parte más delgada de ambos       cm
+                          # tobillos
+# Wrist.Minimum.Girth      Grosor promedio de la parte más delgada de ambas       cm
+                          # muñecas 
+# Age                      Edad                                                   Años
+# Weight                   Peso                                                   Kg
+# Height                   Estatura                                               cm
+# Gender                   Género                                                 1: hombre 0: mujer
+
+
+# Pregunta
+
+# Se pide construir un modelo de regresión lineal simple y otro de regresión 
+# lineal múltiple para predecir la variable Peso, de acuerdo con las siguientes 
+# instrucciones:
+
+datos <- read.csv2(file.choose(), 
+                   encoding = "latin1", 
+                   stringsAsFactors = TRUE, 
+                   check.names = F)
+
+  # 1. Definir la semilla a utilizar, que corresponde a los últimos cuatro 
+    # dígitos del RUN (sin considerar el dígito verificador) del integrante de 
+    # menor edad del equipo.
+
+set.seed(3728)
+
+  # 2. Seleccionar una muestra de 50 mujeres (si la semilla es un número par) 
+    # o 50 hombres (si la semilla es impar).
+
+  # semilla es par, luego utilizamos una muestra de 50 mujeres
+
+mujeres <- datos %>% filter(Gender == "0")
+nombre.variables <- colnames(mujeres)
+muestra.mujeres <- mujeres[sample(nrow(mujeres),size=50),]
+
+  # 3. Seleccionar de forma aleatoria ocho posibles variables predictoras.
+set.seed(1998)
+nombre.variables <- colnames(mujeres)
+nombre.8var <- sample(nombre.variables,8)
+
+muestra.mujeres.8variables <- muestra.mujeres %>% select(nombre.8var)
+
+    # 4. Seleccionar, entre las variables que no fueron escogidas en el punto 
+    # anterior, una que el equipo considere que podría ser útil para predecir 
+    # la variable Peso, justificando bien esta selección.
+
+muestra.filtrada <- muestra.mujeres %>% select(!nombre.8var)
+
+matriz.covarianza <- cor(muestra.filtrada, y= muestra.mujeres$Weight)
+print(matriz.covarianza)
+
+# Hip.Girth
+
+  # 5. Usando el entorno R, construir un modelo de regresión lineal simple con 
+    # el predictor seleccionado en el paso anterior.
+
+
+# r <- cor(muestra.mujeres$Height,muestra.mujeres$Weight)
+muestra.pesoYaltura <- select(muestra.mujeres,Weight,Height)
+
+# Ajustar modelo con R.
+modelo <- lm( muestra.mujeres$Weight ~ muestra.mujeres$Height , data = muestra.pesoYaltura )
+print( summary ( modelo ) )
+
+# Graficar el modelo .
+p <- ggscatter( muestra.pesoYaltura , x = "wt", y = " mpg", color = " blue ", fill = " blue ",
+                    xlab = " Peso [lb x 1000] ", ylab = " Rendimiento [ millas /galón]")
+
+p <- p + geom_smooth( method = lm , se = FALSE , colour = "red")
+print( p )
+
+# Crear grá ficos para evaluar el modelo .
+plot ( modelo )
+
+  # 6. Usando herramientas para la exploración de modelos del entorno R, escoger
+    # entre dos y cinco predictores de entre las variables seleccionadas en los 
+    # puntos 3 y 4 (9 en total) para construir un modelo de regresión lineal 
+    # múltiple.
+
+
+  # 7. Evaluar los modelos y “arreglarlos” en caso de que tengan algún problema 
+    # con las condiciones que deben cumplir.
+
+
+  # 8. Evaluar el poder predictivo del modelo en datos no utilizados para 
+    # construirlo (o utilizando validación cruzada).
   
   

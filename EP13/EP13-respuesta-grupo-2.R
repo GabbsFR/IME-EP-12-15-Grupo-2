@@ -17,7 +17,8 @@ library(simpleboot)
 library(bootES)
 library(WRS2)
 library(stringr)
-
+library(leaps)
+library(car)
 
 
 #-------------------------- Enunciado:  ----------------------------------------
@@ -89,12 +90,14 @@ set.seed(3728)
 
 mujeres <- datos %>% filter(Gender == "0")
 nombre.variables <- colnames(mujeres)
-muestra.mujeres <- mujeres[sample(nrow(mujeres),size=50),]
+
+indices.muestra <- sample(nrow(mujeres),size=50)
+muestra.mujeres <- mujeres[indices.muestra,]
 
   # 3. Seleccionar de forma aleatoria ocho posibles variables predictoras.
 set.seed(1998)
 nombre.variables <- colnames(mujeres)
-nombre.8var <- sample(nombre.variables,8)
+nombre.8var <- sample(nombre.variables,8, replace = FALSE)
 
 muestra.mujeres.8variables <- muestra.mujeres %>% select(nombre.8var)
 
@@ -112,16 +115,15 @@ print(matriz.covarianza)
   # 5. Usando el entorno R, construir un modelo de regresión lineal simple con 
     # el predictor seleccionado en el paso anterior.
 
-
 # r <- cor(muestra.mujeres$Height,muestra.mujeres$Weight)
-muestra.pesoYaltura <- select(muestra.mujeres,Weight,Height)
+# muestra.pesoYcadera <- select(muestra.mujeres,Weight,Hip.Girth)
 
 # Ajustar modelo con R.
-modelo <- lm( muestra.mujeres$Weight ~ muestra.mujeres$Height , data = muestra.pesoYaltura )
-print( summary ( modelo ) )
+modelo <- lm( muestra.mujeres$Weight ~ muestra.mujeres$Hip.Girth , data = muestra.mujeres)
+print(summary (modelo ))
 
 # Graficar el modelo .
-p <- ggscatter( muestra.pesoYaltura , x = "wt", y = " mpg", color = " blue ", fill = " blue ",
+p <- ggscatter( muestra.mujeres , x = "wt", y = " mpg", color = " blue ", fill = " blue ",
                     xlab = " Peso [lb x 1000] ", ylab = " Rendimiento [ millas /galón]")
 
 p <- p + geom_smooth( method = lm , se = FALSE , colour = "red")
@@ -135,12 +137,54 @@ plot ( modelo )
     # puntos 3 y 4 (9 en total) para construir un modelo de regresión lineal 
     # múltiple.
 
+nombre.9var <- c(nombre.8var, "Hip.Girth")
+
+muestra.mujeres.9variables <- muestra.mujeres %>% select(nombre.9var)
+
+# Ajustar modelo con todos los subconjuntos.
+modelos <- regsubsets(muestra.mujeres$Weight ~ ., 
+                      data = muestra.mujeres.9variables, 
+                      method = "exhaustive", nbest = 1, nvmax = 9)
+print(plot(modelos))
+
+# Knee.Girth, Forearm.Girth y Hip.Girth
 
   # 7. Evaluar los modelos y “arreglarlos” en caso de que tengan algún problema 
     # con las condiciones que deben cumplir.
 
+# Ajustar modelo.
+modelo <- lm(muestra.mujeres$Weight ~  
+               muestra.mujeres$Knee.Girth +
+               muestra.mujeres$Forearm.Girth +
+               muestra.mujeres$Hip.Girth, data = datos)
+print(modelo)
+
+# Comprobar independencia de los residuos.
+cat("Prueba de Durbin-Watson para autocorrelaciones ")
+cat("entre errores:\n")
+print(durbinWatsonTest(modelo))
+
+# Comprobar normalidad de los residuos.
+cat("\nPrueba de normalidad para los residuos:\n")
+print(shapiro.test(modelo$residuals))
+
+# Comprobar homocedasticidad de los residuos.
+cat("Prueba de homocedasticidad para los residuos:\n")
+print(ncvTest(modelo))
+
+# Comprobar la multicolinealidad.
+vifs <- vif(modelo)
+cat("\nVerificar la multicolinealidad:\n")
+cat("- VIFs:\n")
+print(vifs)
+cat("- Tolerancias:\n")
+print(1 / vifs)
+cat("- VIF medio:", mean(vifs), "\n")
 
   # 8. Evaluar el poder predictivo del modelo en datos no utilizados para 
     # construirlo (o utilizando validación cruzada).
-  
+
+datos.prueba <- muestra.mujeres[!indices.muestra,]
+
+
   

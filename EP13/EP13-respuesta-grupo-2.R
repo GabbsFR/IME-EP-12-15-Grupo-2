@@ -19,7 +19,7 @@ library(WRS2)
 library(stringr)
 library(leaps)
 library(car)
-
+library(scatterplot3d)
 
 #-------------------------- Enunciado:  ----------------------------------------
 # Un estudio recolectó medidas anatómicas de 247 hombres y 260 mujeres 
@@ -78,13 +78,13 @@ datos <- read.csv2(file.choose(),
                    check.names = F)
 
   # 1. Definir la semilla a utilizar, que corresponde a los últimos cuatro 
-    # dígitos del RUN (sin considerar el dígito verificador) del integrante de 
-    # menor edad del equipo.
+  #    dígitos del RUN (sin considerar el dígito verificador) del integrante de 
+  #    menor edad del equipo.
 
 set.seed(3728)
 
   # 2. Seleccionar una muestra de 50 mujeres (si la semilla es un número par) 
-    # o 50 hombres (si la semilla es impar).
+  #    o 50 hombres (si la semilla es impar).
 
   # semilla es par, luego utilizamos una muestra de 50 mujeres
 
@@ -101,41 +101,57 @@ nombre.8var <- sample(nombre.variables,8, replace = FALSE)
 
 muestra.mujeres.8variables <- muestra.mujeres %>% select(nombre.8var)
 
-    # 4. Seleccionar, entre las variables que no fueron escogidas en el punto 
-    # anterior, una que el equipo considere que podría ser útil para predecir 
-    # la variable Peso, justificando bien esta selección.
+  # De manera aleatoria, se seleccionaron las siguientes 8 variables:
+
+  # - Knee.Girth: Grosor promedio de ambas rodillas, posición levemente flectada,
+  #               medición arriba de la rótula.
+  # - Ankles.diameter: Suma de los diámetros de los tobillos.
+  # - Wrist.Minimum.Girth: Grosor promedio de la parte más delgada de ambas muñecas.
+  # - Thigh.Girth: Grosor promedio de ambos muslos bajo el pliegue del glúteo.
+  # - Wrists.diameter: Suma de los diámetros de las muñecas.
+  # - Chest.diameter: Diámetro del pecho (a la altura de los pezones).
+  # - Forearm.Girth: Grosor promedio de ambos antebrazos, brazos extendidos palmas 
+  #                  hacia arriba.
+  # - Ankle.Minimum.Girth: Grosor promedio de la parte más delgada de ambos tobillos.
+
+
+
+  # 4. Seleccionar, entre las variables que no fueron escogidas en el punto 
+  #    anterior, una que el equipo considere que podría ser útil para predecir 
+  #    la variable Peso, justificando bien esta selección.
 
 muestra.filtrada <- muestra.mujeres %>% select(!nombre.8var)
 
 matriz.covarianza <- cor(muestra.filtrada, y= muestra.mujeres$Weight)
 print(matriz.covarianza)
 
-# Hip.Girth
+# La variable que se decide agregar para poder predecir el peso, es Hip.Girth 
+# (Grosor a la altura de las caderas), se tomó la decisión de elegir esta opción,
+# por que posee la correlación más fuerte a diferencia de las otras variables.
 
   # 5. Usando el entorno R, construir un modelo de regresión lineal simple con 
-    # el predictor seleccionado en el paso anterior.
+  #    el predictor seleccionado en el paso anterior.
 
 # r <- cor(muestra.mujeres$Height,muestra.mujeres$Weight)
 # muestra.pesoYcadera <- select(muestra.mujeres,Weight,Hip.Girth)
 
 # Ajustar modelo con R.
-modelo <- lm( muestra.mujeres$Weight ~ muestra.mujeres$Hip.Girth , data = muestra.mujeres)
-print(summary (modelo ))
+modelo <- lm(muestra.mujeres$Weight ~ muestra.mujeres$Hip.Girth , data = muestra.mujeres)
+print(summary (modelo))
 
 # Graficar el modelo .
-p <- ggscatter( muestra.mujeres , x = "wt", y = " mpg", color = " blue ", fill = " blue ",
-                    xlab = " Peso [lb x 1000] ", ylab = " Rendimiento [ millas /galón]")
+p <- ggscatter(muestra.mujeres, x = "wt", y = "mpg", color = " blue ", fill = " blue ",
+               xlab = " Peso [lb x 1000] ", ylab = " Rendimiento [ millas /galón]")
 
-p <- p + geom_smooth( method = lm , se = FALSE , colour = "red")
+p <- p + geom_smooth(method = lm, se = FALSE, colour = "red")
 print( p )
 
-# Crear grá ficos para evaluar el modelo .
+# Crear gráficos para evaluar el modelo .
 plot ( modelo )
 
   # 6. Usando herramientas para la exploración de modelos del entorno R, escoger
-    # entre dos y cinco predictores de entre las variables seleccionadas en los 
-    # puntos 3 y 4 (9 en total) para construir un modelo de regresión lineal 
-    # múltiple.
+  #    entre dos y cinco predictores de entre las variables seleccionadas en los 
+  #    puntos 3 y 4 (9 en total) para construir un modelo de regresión lineal múltiple.
 
 nombre.9var <- c(nombre.8var, "Hip.Girth")
 
@@ -150,7 +166,7 @@ print(plot(modelos))
 # Knee.Girth, Forearm.Girth y Hip.Girth
 
   # 7. Evaluar los modelos y “arreglarlos” en caso de que tengan algún problema 
-    # con las condiciones que deben cumplir.
+  #    con las condiciones que deben cumplir.
 
 # Ajustar modelo.
 modelo <- lm(muestra.mujeres$Weight ~  
@@ -182,9 +198,24 @@ print(1 / vifs)
 cat("- VIF medio:", mean(vifs), "\n")
 
   # 8. Evaluar el poder predictivo del modelo en datos no utilizados para 
-    # construirlo (o utilizando validación cruzada).
+  #    construirlo (o utilizando validación cruzada).
+
+
 
 datos.prueba <- muestra.mujeres[!indices.muestra,]
-
+# Crear conjuntos de entrenamiento y prueba
+set.seed(3345)
+print(muestra.mujeres.9variables)
+# Se calcula el tamaño de los datos de prueba.
+n <- nrow(muestra.mujeres.9variables)
+# Se crea el tamaño del entrenamiento (80% de los datos)
+tamaño_entrenamiento <- floor(0.8 * n)
+muestra <- sample.int(n = n, size = tamaño_entrenamiento, replace = FALSE)
+entrenamiento <- muestra.mujeres.9variables[muestra, ]
+prueba1 <- muestra.mujeres.9variables[-muestra, ]
+print(prueba1)
+# Se ajusta el modelo con el conjunto de entrenamiento.
+# modelo1 <- lm(Weight ~ Chest.diameter, data = entrenamiento)
+# print(summary(modelo1))
 
   

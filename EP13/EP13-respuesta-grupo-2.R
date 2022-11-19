@@ -235,3 +235,6 @@ ecm_prueba <- mean(error ** 2)
 cat("MSE para el conjunto de prueba: ", ecm_prueba)
 
 # El MSE de entrenamiento es 103.8907 y el MSE de prueba es 100.4517 
+
+# Se puede ver que el error cuadrado promedio del conjunto de entrenamiento
+# es muy similar al del conjunto de prueba, por lo que se puede concluir que es generalizable.

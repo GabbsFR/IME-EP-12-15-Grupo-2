@@ -202,20 +202,36 @@ cat("- VIF medio:", mean(vifs), "\n")
 
 
 
-datos.prueba <- muestra.mujeres[!indices.muestra,]
-# Crear conjuntos de entrenamiento y prueba
+#datos.prueba <- muestra.mujeres[!indices.muestra,]
+
+# Se crea un conjuntos de entrenamiento y prueba
+# Se establece una semilla con los ultimos digitos del rut de Ivan.
 set.seed(3345)
-print(muestra.mujeres.9variables)
 # Se calcula el tamaño de los datos de prueba.
-n <- nrow(muestra.mujeres.9variables)
+n <- nrow(muestra.mujeres)
 # Se crea el tamaño del entrenamiento (80% de los datos)
 tamaño_entrenamiento <- floor(0.8 * n)
 muestra <- sample.int(n = n, size = tamaño_entrenamiento, replace = FALSE)
-entrenamiento <- muestra.mujeres.9variables[muestra, ]
-prueba1 <- muestra.mujeres.9variables[-muestra, ]
-print(prueba1)
-# Se ajusta el modelo con el conjunto de entrenamiento.
-# modelo1 <- lm(Weight ~ Chest.diameter, data = entrenamiento)
-# print(summary(modelo1))
+# Se crea la variable de entrenamiento
+entrenamiento <- muestra.mujeres[muestra, ]
+# Se crea la prueba a realizar
+prueba_2 <- muestra.mujeres[-muestra, ]
+# Se crea el modelo
+modelo_2 <- lm(muestra.mujeres$Weight ~  
+               muestra.mujeres$Ankles.diameter, data = datos)
 
-  
+# Se ajusta el modelo con el conjunto de entrenamiento.
+print(summary(modelo_2))
+
+# Se calcula el error cuadratico medio para el conjunto de entrenamiento.
+ecm_entrenamiento <- mean(modelo_2$residuals ** 2)
+cat("MSE para el conjunto de entrenamiento: ", ecm_entrenamiento, "\n")
+
+# Se realizan las predicciones para el conjunto de prueba.
+predicciones <- predict(modelo_2, prueba_2)
+# Se calcula el error cuadratico medio (ECM) para el conjunto de prueba.
+error <- sapply(prueba_2[["Weight"]],as.double) - predicciones
+ecm_prueba <- mean(error ** 2)
+cat("MSE para el conjunto de prueba: ", ecm_prueba)
+
+# El MSE de entrenamiento es 103.8907 y el MSE de prueba es 100.4517 

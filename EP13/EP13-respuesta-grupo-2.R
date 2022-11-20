@@ -120,6 +120,9 @@ muestra.mujeres.8variables <- muestra.mujeres %>% select(nombre.8var)
   #    anterior, una que el equipo considere que podría ser útil para predecir 
   #    la variable Peso, justificando bien esta selección.
 
+  # Se construye una matriz de covarianza para ver qué variable tiene la correlación
+  # más fuerte. 
+
 muestra.filtrada <- muestra.mujeres %>% select(!nombre.8var)
 
 matriz.covarianza <- cor(muestra.filtrada, y= muestra.mujeres$Weight)
@@ -132,16 +135,16 @@ print(matriz.covarianza)
   # 5. Usando el entorno R, construir un modelo de regresión lineal simple con 
   #    el predictor seleccionado en el paso anterior.
 
-# r <- cor(muestra.mujeres$Height,muestra.mujeres$Weight)
-# muestra.pesoYcadera <- select(muestra.mujeres,Weight,Hip.Girth)
 
 # Ajustar modelo con R.
 modelo <- lm(muestra.mujeres$Weight ~ muestra.mujeres$Hip.Girth , data = muestra.mujeres)
 print(summary (modelo))
 
 # Graficar el modelo .
-p <- ggscatter(muestra.mujeres, x = "wt", y = "mpg", color = " blue ", fill = " blue ",
-               xlab = " Peso [lb x 1000] ", ylab = " Rendimiento [ millas /galón]")
+# Adicionalmente en la consola de RStudio para ver todos los gráficos y los posteriores cálculos, 
+# se debe escribir <Return> 
+p <- ggscatter(muestra.mujeres, x = "Hip.Girth", y = "Weight", color = " blue ", fill = " blue ",
+               xlab = " Grosor a la altura de las caderas [Cm]", ylab = " Peso [Kg]")
 
 p <- p + geom_smooth(method = lm, se = FALSE, colour = "red")
 print( p )
@@ -158,12 +161,16 @@ nombre.9var <- c(nombre.8var, "Hip.Girth")
 muestra.mujeres.9variables <- muestra.mujeres %>% select(nombre.9var)
 
 # Ajustar modelo con todos los subconjuntos.
+
+# Se opta por utilizar este ajuste debido a que entrega mayor información visual
+# Mostrando todos los posibles BIC junto con las variables asociadas. 
 modelos <- regsubsets(muestra.mujeres$Weight ~ ., 
                       data = muestra.mujeres.9variables, 
                       method = "exhaustive", nbest = 1, nvmax = 9)
 print(plot(modelos))
 
-# Knee.Girth, Forearm.Girth y Hip.Girth
+
+# Las variables seleccionadas son: Knee.Girth, Forearm.Girth y Hip.Girth.
 
   # 7. Evaluar los modelos y “arreglarlos” en caso de que tengan algún problema 
   #    con las condiciones que deben cumplir.
@@ -175,34 +182,36 @@ modelo <- lm(muestra.mujeres$Weight ~
                muestra.mujeres$Hip.Girth, data = datos)
 print(modelo)
 
+# Se establece un nivel de significancia de 0.05 para comprobar las condiciones.
+
 # Comprobar independencia de los residuos.
+# p-valor = 0.732 > alfa, se cumple la condición de independencia de los residuos. 
 cat("Prueba de Durbin-Watson para autocorrelaciones ")
 cat("entre errores:\n")
 print(durbinWatsonTest(modelo))
 
 # Comprobar normalidad de los residuos.
+# p-valor = 0.519 > alfa, se cumple que los residuos siguen una distribución normal.
 cat("\nPrueba de normalidad para los residuos:\n")
 print(shapiro.test(modelo$residuals))
 
 # Comprobar homocedasticidad de los residuos.
+# p-valor = 0.4519 > alfa, se cumple que la varianza de los residuos son iguales
 cat("Prueba de homocedasticidad para los residuos:\n")
 print(ncvTest(modelo))
 
 # Comprobar la multicolinealidad.
+# Para el caso de la multicolinealidad ningún valor tiene un VIF >= 10, sin embargo, si se observan
+# las tolerancias, la variable que genera preocupación sería Knee.Girth (Grosor promedios de ambas rodillas). 
+# Se puede considerar eliminar la variable del modelo, pero al hacerlo no se cumple la condición de normalidad
+# de los residuos. 
+
 vifs <- vif(modelo)
 cat("\nVerificar la multicolinealidad:\n")
 cat("- VIFs:\n")
 print(vifs)
 cat("- Tolerancias:\n")
-print(1 / vifs)
-cat("- VIF medio:", mean(vifs), "\n")
 
-  # 8. Evaluar el poder predictivo del modelo en datos no utilizados para 
-  #    construirlo (o utilizando validación cruzada).
-
-
-
-#datos.prueba <- muestra.mujeres[!indices.muestra,]
 
 # Se crea un conjuntos de entrenamiento y prueba
 # Se establece una semilla con los ultimos digitos del rut de Ivan.
@@ -233,8 +242,10 @@ predicciones <- predict(modelo_2, prueba_2)
 error <- sapply(prueba_2[["Weight"]],as.double) - predicciones
 ecm_prueba <- mean(error ** 2)
 cat("MSE para el conjunto de prueba: ", ecm_prueba)
+cat("\n")
 
-# El MSE de entrenamiento es 103.8907 y el MSE de prueba es 100.4517 
+# El MSE de entrenamiento es 103.8907 y el MSE de prueba es 100.4517.
 
 # Se puede ver que el error cuadrado promedio del conjunto de entrenamiento
-# es muy similar al del conjunto de prueba, por lo que se puede concluir que es generalizable.
+# es muy similar al del conjunto de prueba. Por lo que se podría concluir que 
+# el modelo propuesto sí puede ser generalizable.

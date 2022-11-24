@@ -94,18 +94,54 @@ datos <- read.csv2(file.choose(),
                    stringsAsFactors = TRUE, 
                    check.names = F)
 
+
+datos[["IMC"]] <- datos$Weight/((datos$Height)/100)^2
+
+# Estado Nutricional 
+# IMC >= 25,0 : Sobrepeso
+# IMC < 25,0 : No sobrepeso 
+
+# Creamos la variable dicotómica 
+# 1: Sobrepeso
+# 0: No sobrepeso
+
+condicion <- ifelse(datos[["IMC"]] >= 25.0, 1, 0)
+datos[["EN"]] <- factor(condicion)
+
+
 # Se filtran los datos, correspondientes a las mujeres debido a que la semilla
 # establecida es par. (Gender == 0)
 mujeres <- datos %>% filter(Gender == "0")
-nombre.variables <- colnames(mujeres)
+# Se saca las 60 muestras con sobrepeso y las 60 sin sobrepeso
+sobrepeso <- mujeres %>% filter(EN == 1)
+muestra_sobrepeso <- sobrepeso[sample(nrow(sobrepeso),60,replace = TRUE),]
+noSobrepeso <- mujeres %>% filter(EN == 0)
+muestra_nosobrepeso <- noSobrepeso[sample(nrow(noSobrepeso),60),]
 
-# Se define el IMC (Indice Masa Corporal)
-# IMC = peso/(estatura^2)
-mujeres[["IMC"]] = mujeres$Weight/((mujeres$Height)/100)^2
-# Se seleccionan 120 muestras
+# Se separa el conjunto de entrenamiento y prueba 40 y 20 de cada muestra
+test_sobrepeso <- sample.int(nrow(muestra_sobrepeso),40, replace = FALSE)
+test_nosobrepeso <- sample.int(nrow(muestra_nosobrepeso),40, replace = FALSE)
 
-# indices.muestra <- sample(nrow(mujeres),size=120)
-# muestra.mujeres <- mujeres[indices.muestra,]
+# Se necesita dividir el conjunto de mujeres tanto de las que estan en sobrepeso
+# como las que no lo estan ya que para ajustar el modelo, primeramente se necesita
+# un modelo de entrenamiento y otro de prueba.
+sobrepeso40 <- muestra_sobrepeso[test_sobrepeso,]
+sobrepeso20 <- muestra_sobrepeso[-test_sobrepeso,]
+nosobrepeso40 <- muestra_nosobrepeso[test_nosobrepeso,]
+nosobrepeso20 <-muestra_nosobrepeso[-test_nosobrepeso,]
+
+
+
+# Se requiere tomar 2 grupos de muestras de mujer
+# el primero "mujeres80" corresponde a 80 mujeres, de las cuales, 40 estan en
+# sobrepeso y las otras 40 no estan en sobrepeso
+# y el segundo grupo "mujeres40" corresponde a 40 mujeres de las cuales 20 estan
+# en sobrepeso y las otras 20 no estan en sobrepeso
+# Estos 2 grupos corresponden a conjuntos de entrenamiento y prueba, donde 
+# mujeres80 es para entrenamiento y mujeres 40 para prueba.
+mujeres80_entrenamiento <- rbind(sobrepeso40,nosobrepeso40)
+mujeres40_prueba <- rbind(sobrepeso20,nosobrepeso20)
+
 
 # 3) Recordar las ocho posibles variables predictoras seleccionadas de forma 
 #    aleatoria en el ejercicio anterior.
@@ -124,7 +160,7 @@ mujeres[["IMC"]] = mujeres$Weight/((mujeres$Height)/100)^2
 # - Ankle.Minimum.Girth: Grosor promedio de la parte más delgada de ambos tobillos
 
 
-
+# Luego se requiere sumar a estas 8 variables, el estado nutricional EN y el peso.
 
 
 # 4) Seleccionar, de las otras variables, una que el equipo considere que podría 

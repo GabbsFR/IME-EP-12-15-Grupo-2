@@ -77,8 +77,8 @@ library(scatterplot3d)
 #    RUN (sin considerar el dígito verificador) del integrante de mayor edad del equipo.
 
 # Se establece la semilla con los ultimos cuatro digitos del RUT del integrante
-# [Nombre del integrante]
-set.seed(12)
+# Bastián Soto rut: 19.495.542-1
+set.seed(5542)
 
 
 # 2) Seleccionar una muestra de 120 mujeres (si la semilla es un número par) o 
@@ -94,6 +94,18 @@ datos <- read.csv2(file.choose(),
                    stringsAsFactors = TRUE, 
                    check.names = F)
 
+# Se filtran los datos, correspondientes a las mujeres debido a que la semilla
+# establecida es par. (Gender == 0)
+mujeres <- datos %>% filter(Gender == "0")
+nombre.variables <- colnames(mujeres)
+
+# Se define el IMC (Indice Masa Corporal)
+# IMC = peso/(estatura^2)
+mujeres[["IMC"]] = mujeres$Weight/((mujeres$Height)/100)^2
+# Se seleccionan 120 muestras
+
+# indices.muestra <- sample(nrow(mujeres),size=120)
+# muestra.mujeres <- mujeres[indices.muestra,]
 
 # 3) Recordar las ocho posibles variables predictoras seleccionadas de forma 
 #    aleatoria en el ejercicio anterior.
@@ -129,8 +141,8 @@ datos <- read.csv2(file.choose(),
 
 
 # 6) Usando herramientas estándares1 para la exploración de modelos del entorno R,
-# buscar entre dos y cinco predictores de entre las 9 variables seleccionadas en
-# pasos anteriores para construir un modelo de regresión logística múltiple.
+#    buscar entre dos y cinco predictores de entre las 9 variables seleccionadas en
+#    pasos anteriores para construir un modelo de regresión logística múltiple.
 
 
 
@@ -139,6 +151,6 @@ datos <- read.csv2(file.choose(),
 
 
 
-#8. Usando código estándar evaluar el poder predictivo de los modelos con los 
-#   datos de las 40 personas que no se incluyeron en su construcción en términos
-#   de sensibilidad y especificidad.
+# 8) Usando código estándar evaluar el poder predictivo de los modelos con los 
+#    datos de las 40 personas que no se incluyeron en su construcción en términos
+#    de sensibilidad y especificidad.

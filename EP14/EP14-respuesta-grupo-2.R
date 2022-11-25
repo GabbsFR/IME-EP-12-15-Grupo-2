@@ -162,12 +162,34 @@ mujeres40_prueba <- rbind(sobrepeso20,nosobrepeso20)
 
 # Luego se requiere sumar a estas 8 variables, el estado nutricional EN y el peso.
 
+set.seed(1998)
+nombre.variables <- colnames(mujeres)
+nombre.8var <- sample(nombre.variables,8, replace = FALSE)
 
 # 4) Seleccionar, de las otras variables, una que el equipo considere que podría 
 #    ser útil para predecir la clase EN, justificando bien esta selección.
 
+# 
+muestra.filtrada <- mujeres80_entrenamiento %>% select(!nombre.8var) %>% select(!IMC)
 
+# Ajustar modelo nulo.
+nulo <- glm(EN ~ 1, family = binomial(link = "logit"), data = muestra.filtrada)
 
+# Ajustar modelo completo.
+cat("\n\n")
+completo <- glm(EN ~ ., family = binomial(link = "logit"),
+                data = muestra.filtrada)
+
+# Ajustar modelo con regresión escalonada.
+cat("Modelo con regresión escalonada\n")
+cat("--------------------------------------\n")
+mejor <- step(nulo, scope = list(lower = nulo, upper = completo),
+              direction = "both", trace = 0)
+
+print(summary(mejor))
+
+# Luego con los datos obtenidos tenemos dos posibles predictores para elegir,
+# el peso(Weight) o la altura (Height)
 
 
 # 5) Usando el entorno R y paquetes estándares, construir un modelo de regresión 

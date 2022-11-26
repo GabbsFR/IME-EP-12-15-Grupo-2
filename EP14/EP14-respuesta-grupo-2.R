@@ -285,7 +285,7 @@ print(summary(modelo_RLM))
 #    y son generalizables) y “arreglarlos” en caso de que tengan algún problema.
 
 # --------------- EVALUACIÓN DEL MODELO RLM -----------------------
-# Obtener los residuos y las estadísticas .
+# Obtener los residuos y las estadísticas.
 output <- data.frame (predicted.probabilities = fitted(modelo_RLM))
 output [["standardized.residuals"]] <- rstandard(modelo_RLM)
 output [["studentized.residuals"]] <- rstudent( modelo_RLM )
@@ -313,7 +313,7 @@ cat ("- - - - - - - - - - -- - - - - - - - - - - - - - - - - - - - -- - - - - - 
 print(rownames(mujeres80_entrenamiento[sospechosos2, ]))
 
 # Revisar casos cuyo apalancamiento sea más del doble
-# o triple del apalancamiento promedio .
+# o triple del apalancamiento promedio.
 leverage.promedio <- ncol(mujeres80_entrenamiento)/nrow(mujeres80_entrenamiento)
 sospechosos3 <- which(output [["leverage "]] > leverage.promedio)
 sospechosos3 <- sort(sospechosos3)
@@ -334,7 +334,7 @@ cat (" Residuales con DFBeta sobre 1\n")
 cat (" - - - - - - - - - - -- - - - - - - - - - - - - - - - - -\n")
 print(rownames(mujeres80_entrenamiento[sospechosos4 , ]))
 
-# Detalle de las observaciones posiblemente atí picas .
+# Detalle de las observaciones posiblemente atípicas.
 sospechosos <- c(sospechosos1, sospechosos2, sospechosos3, sospechosos4)
 sospechosos <- sort (unique(sospechosos))
 cat ("\n\n")
@@ -344,12 +344,11 @@ print(mujeres80_entrenamiento[sospechosos, ])
 cat("\n\n")
 print(output[sospechosos , ])
 
+# Habiendo evaluado la confiabilidad, se concluye que se tiene un buen nivel de ajuste.
 
 # 8) Usando código estándar evaluar el poder predictivo de los modelos con los 
 #    datos de las 40 personas que no se incluyeron en su construcción en términos
 #    de sensibilidad y especificidad.
-
-
 
 #----------- EVALUAR PODER PREDICTIVO PARA RLM -------
 # Evaluar el modelo con el conjunto de entrenamiento
@@ -357,7 +356,7 @@ cat ("Evaluación del modelo a partir del conjunto de entrenamiento :\n")
 probs_e <- predict(modelo_RLM, mujeres80_entrenamiento, type = "response")
 
 umbral <- 0.5
-preds_e <- sapply(probs_e , function (p) ifelse( p >= umbral , "Sobrepeso", "No sobrepeso"))
+preds_e <- sapply(probs_e , function (p) ifelse( p >= umbral , "1", "0"))
 preds_e <- factor ( preds_e , levels = levels ( mujeres80_entrenamiento[["EN"]]) )
 
 ROC_e <- roc(mujeres80_entrenamiento[["EN"]], probs_e)
@@ -372,7 +371,7 @@ print(matriz_e)
 cat ("Evaluación del modelo a partir del conjunto de prueba :\n")
 probs_p <- predict(modelo_RLM, mujeres40_prueba , type = "response")
 
-preds_p <- sapply(probs_p , function (p) ifelse ( p >= umbral , "Sobrepeso", "No sobrepeso") )
+preds_p <- sapply(probs_p , function (p) ifelse ( p >= umbral , "1", "0") )
 preds_p <- factor(preds_p , levels = levels ( mujeres40_prueba[["EN"]]) )
 
 ROC_p <- roc(mujeres40_prueba[["EN"]] , probs_p)
@@ -381,3 +380,6 @@ plot(ROC_p)
 matriz_p <-confusionMatrix(preds_p , mujeres40_prueba[["EN"]])
 print(matriz_p)
 
+# Se puede apreciar que el modelo con el conjunto de entrenamiento tiene mejor accuracy que el conjunto de prueba, 
+# el de entrenamiento tiene 0.95 y el de prueba 0.875, se puede apreciar que el accuracy no disminuye casi nada, por lo que
+# el modelo resulta ser generalizado.

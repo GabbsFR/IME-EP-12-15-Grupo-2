@@ -226,20 +226,158 @@ print(matriz_confusion)
 
 
 
-
-
-
 # 6) Usando herramientas estándares1 para la exploración de modelos del entorno R,
 #    buscar entre dos y cinco predictores de entre las 9 variables seleccionadas en
 #    pasos anteriores para construir un modelo de regresión logística múltiple.
 
+# Recordando las variables seleccionadas en el ejercicio anterior: 
+
+# - Knee.Girth
+# - Ankles.diameter
+# - Wrist.Minimum.Girth
+# - Thigh.Girth
+# - Wrists.diameter
+# - Chest.diameter
+# - Forearm.Girth
+# - Ankle.Minimum.Girth
+
+
+# Se seleccionan las variables a trabajar.
+mujeres80_entrenamiento <- mujeres80_entrenamiento %>% select(Knee.Girth,
+                                                              Ankles.diameter,
+                                                              Wrist.Minimum.Girth,
+                                                              Thigh.Girth,
+                                                              Wrists.diameter,
+                                                              Chest.diameter,
+                                                              Forearm.Girth,
+                                                              Ankle.Minimum.Girth,
+                                                              EN,
+                                                              Weight)
+
+mujeres40_prueba <- mujeres40_prueba %>% select(Knee.Girth,
+                                                 Ankles.diameter,
+                                                 Wrist.Minimum.Girth,
+                                                 Thigh.Girth,
+                                                 Wrists.diameter,
+                                                 Chest.diameter,
+                                                 Forearm.Girth,
+                                                 Ankle.Minimum.Girth,
+                                                 EN,
+                                                 Weight)
+
+reg_multiple_predictores <- regsubsets(EN ~ ., data = mujeres80_entrenamiento, nbest = 1, 
+                                       nvmax = 5, method = "exhaustive")
+plot(reg_multiple_predictores)
+
+# Según el método de exploración de subconjuntos, el mejor modelo que usa 
+# entre 2 y 5 variables es el que usa como predictores el grosor de ambos muslos
+# y la suma de los diámetros de las muñecas. 
+
+# Ajustar el modelo con los predictores seleccionados. 
+
+modelo_RLM <- glm(EN ~ Thigh.Girth + Wrists.diameter, data = mujeres80_entrenamiento,
+                           family = binomial(link = "logit"))
+cat("\nModelo de regresión logística múltiple\n")
+print(summary(modelo_RLM))
 
 
 # 7) Evaluar la confiabilidad de los modelos (i.e. que tengan un buen nivel de ajuste 
 #    y son generalizables) y “arreglarlos” en caso de que tengan algún problema.
 
+# --------------- EVALUACIÓN DEL MODELO RLM -----------------------
+# Obtener los residuos y las estadísticas .
+output <- data.frame (predicted.probabilities = fitted(modelo_RLM))
+output [["standardized.residuals"]] <- rstandard(modelo_RLM)
+output [["studentized.residuals"]] <- rstudent( modelo_RLM )
+output [["cooks.distance"]] <- cooks.distance(modelo_RLM)
+output [["dfbeta"]] <- dfbeta(modelo_RLM )
+output [["dffit"]] <- dffits(modelo_RLM)
+output [["leverage"]] <- hatvalues(modelo_RLM)
+
+# Evaluar residuos estandarizados que escapen a la normalidad.
+# 95 % de los residuos estandarizados deberían estar entre
+# -1.96 y 1.96 , y 99 % entre -2.58 y 2.58.
+sospechosos1 <- which (abs(output[["standardized.residuals"]]) > 1.96)
+sospechosos1 <- sort(sospechosos1 )
+cat ("\n\n")
+cat (" Residuos estandarizados fuera del 95 % esperado \n")
+cat (" - - - - - - - - - - -- - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - -\n")
+print(rownames(mujeres80_entrenamiento[sospechosos1, ]) )
+
+# Revisar casos con distancia de Cook mayor a uno.
+sospechosos2 <- which(output[["cooks.distance"]] > 1)
+sospechosos2 <- sort(sospechosos2)
+cat ("\n\n")
+cat ("Residuales con una distancia de Cook alta \n")
+cat ("- - - - - - - - - - -- - - - - - - - - - - - - - - - - - - - -- - - - - - - - -\n")
+print(rownames(mujeres80_entrenamiento[sospechosos2, ]))
+
+# Revisar casos cuyo apalancamiento sea más del doble
+# o triple del apalancamiento promedio .
+leverage.promedio <- ncol(mujeres80_entrenamiento)/nrow(mujeres80_entrenamiento)
+sospechosos3 <- which(output [["leverage "]] > leverage.promedio)
+sospechosos3 <- sort(sospechosos3)
+
+cat ("\n\n")
+
+cat (" Residuales con levarage fuera de rango ( > ")
+cat (round(leverage.promedio, 3) , ")", "\n", sep = "")
+cat (" - - - - - - - - - - -- - - - - - - - - - - - - - - - - - - - -- - - - - -\n")
+print(rownames(mujeres80_entrenamiento[sospechosos3, ]) )
+
+# Revisar casos con DFBeta >= 1.
+sospechosos4 <- which(apply(output[["dfbeta"]] >= 1 ,1 ,any))
+sospechosos4 <- sort(sospechosos4)
+names(sospechosos4 ) <- NULL
+cat ("\n\n")
+cat (" Residuales con DFBeta sobre 1\n")
+cat (" - - - - - - - - - - -- - - - - - - - - - - - - - - - - -\n")
+print(rownames(mujeres80_entrenamiento[sospechosos4 , ]))
+
+# Detalle de las observaciones posiblemente atí picas .
+sospechosos <- c(sospechosos1, sospechosos2, sospechosos3, sospechosos4)
+sospechosos <- sort (unique(sospechosos))
+cat ("\n\n")
+cat (" Casos sospechosos \n")
+cat (" - - - - - - - - - - -- - - - - -\n")
+print(mujeres80_entrenamiento[sospechosos, ])
+cat("\n\n")
+print(output[sospechosos , ])
 
 
 # 8) Usando código estándar evaluar el poder predictivo de los modelos con los 
 #    datos de las 40 personas que no se incluyeron en su construcción en términos
 #    de sensibilidad y especificidad.
+
+
+
+#----------- EVALUAR PODER PREDICTIVO PARA RLM -------
+# Evaluar el modelo con el conjunto de entrenamiento
+cat ("Evaluación del modelo a partir del conjunto de entrenamiento :\n")
+probs_e <- predict(modelo_RLM, mujeres80_entrenamiento, type = "response")
+
+umbral <- 0.5
+preds_e <- sapply(probs_e , function (p) ifelse( p >= umbral , "Sobrepeso", "No sobrepeso"))
+preds_e <- factor ( preds_e , levels = levels ( mujeres80_entrenamiento[["EN"]]) )
+
+ROC_e <- roc(mujeres80_entrenamiento[["EN"]], probs_e)
+plot(ROC_e)
+
+matriz_e <- confusionMatrix(preds_e , mujeres80_entrenamiento[["EN"]])
+print(matriz_e)
+
+
+
+# Evaluar el modelo con el conjunto de prueba.
+cat ("Evaluación del modelo a partir del conjunto de prueba :\n")
+probs_p <- predict(modelo_RLM, mujeres40_prueba , type = "response")
+
+preds_p <- sapply(probs_p , function (p) ifelse ( p >= umbral , "Sobrepeso", "No sobrepeso") )
+preds_p <- factor(preds_p , levels = levels ( mujeres40_prueba[["EN"]]) )
+
+ROC_p <- roc(mujeres40_prueba[["EN"]] , probs_p)
+plot(ROC_p)
+
+matriz_p <-confusionMatrix(preds_p , mujeres40_prueba[["EN"]])
+print(matriz_p)
+

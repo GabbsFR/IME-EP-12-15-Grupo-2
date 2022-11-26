@@ -20,6 +20,9 @@ library(stringr)
 library(leaps)
 library(car)
 library(scatterplot3d)
+library(pROC)
+library(caret)
+library(tidyverse)
 
 #-------------------------- Enunciado:  ----------------------------------------
 # Para esta actividad usaremos los datos de medidas anatómicas recolectados por 
@@ -199,7 +202,30 @@ print(summary(mejor))
 # Ajustar modelo.
 modelo <- glm(EN ~ Weight, family = binomial(link = "logit"), 
               data = mujeres80_entrenamiento)
+
+cat("\n Modelo regresión logística simple")
 print(summary(modelo))
+
+# Evaluar el modelo con el conjunto de prueba. 
+cat("Evaluación del modelo a partir del conjunto de prueba:\n")
+
+umbral <- 0.5
+probs <- predict(modelo, mujeres40_prueba, type = "response")
+preds <- sapply(probs, function(p) ifelse(p >= umbral, "Sobrepeso", "No sobrepeso"))
+
+preds <- factor(preds, levels= levels(mujeres40_prueba[["EN"]]))
+
+ROC_prueba <- roc(mujeres40_prueba[["EN"]], probs)
+plot(ROC_prueba)
+
+matriz_confusion <- confusionMatrix(preds, mujeres40_prueba[["EN"]])
+print(matriz_confusion)
+
+# Se puede ver que la curva se aleja bastante de la diagonal, por lo que se puede
+# concluir que el conjunto prueba es un buen modelo. 
+
+
+
 
 
 

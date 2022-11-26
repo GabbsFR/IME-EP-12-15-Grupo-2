@@ -189,12 +189,17 @@ mejor <- step(nulo, scope = list(lower = nulo, upper = completo),
 print(summary(mejor))
 
 # Luego con los datos obtenidos tenemos dos posibles predictores para elegir,
-# el peso(Weight) o la altura (Height)
+# el peso(Weight) o la altura (Height) de los cuales escogeremos el peso.
 
 
 # 5) Usando el entorno R y paquetes estándares, construir un modelo de regresión 
 #    logística con el predictor seleccionado en el paso anterior y utilizando de
 #    la muestra obtenida.
+
+# Ajustar modelo.
+modelo <- glm(EN ~ Weight, family = binomial(link = "logit"), 
+              data = mujeres80_entrenamiento)
+print(summary(modelo))
 
 
 

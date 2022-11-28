@@ -119,6 +119,21 @@ muestra_datos<- rbind(muestra_sobrepeso,muestra_nosobrepeso)
 #    luego utilizar las funciones del paquete caret para construir un modelo de regresión
 #    lineal múltiple con los predictores escogidos y evaluarlo usando bootstrapping.
 
+borrar <-c("EN","IMC")
+muestras_sin_IMC_EN<- muestra_datos[,!(names(muestra_datos) %in% borrar)]
+nombre.variables <- colnames(muestras_sin_IMC_EN)
+
+# Se realiza la busqueda exaustiva con regsubsets sin considerar las variables
+# IMC y EN.
+
+#SE DEBE ARREGLAR
+predictores <- regsubsets(x=nombre.variables, 
+                          data=muestras_sin_IMC_EN, 
+                          weights=NULL, nbest=1, nvmax=8,
+                          method="exhaustive")
+
+# Uso de caret
+
 
 
 # 4) Haciendo un poco de investigación sobre el paquete caret, en particular cómo 

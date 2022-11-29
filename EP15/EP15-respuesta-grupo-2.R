@@ -23,7 +23,7 @@ library(scatterplot3d)
 library(pROC)
 library(caret)
 library(tidyverse)
-
+library(leaps)
 #-------------------------- Enunciado:  ----------------------------------------
 
 # Para esta actividad usaremos los datos de medidas anatómicas recolectados por 
@@ -119,20 +119,45 @@ muestra_datos<- rbind(muestra_sobrepeso,muestra_nosobrepeso)
 #    luego utilizar las funciones del paquete caret para construir un modelo de regresión
 #    lineal múltiple con los predictores escogidos y evaluarlo usando bootstrapping.
 
+set.seed(19495)
+
+# Se separa el conjunto de entrenamiento y prueba 40 y 20 de cada muestra
+test_sobrepeso <- sample.int(nrow(muestra_sobrepeso),40, replace = FALSE)
+test_nosobrepeso <- sample.int(nrow(muestra_nosobrepeso),40, replace = FALSE)
+
+# Se necesita dividir el conjunto de mujeres tanto de las que estan en sobrepeso
+# como las que no lo estan ya que para ajustar el modelo, primeramente se necesita
+# un modelo de entrenamiento y otro de prueba.
+sobrepeso40 <- muestra_sobrepeso[test_sobrepeso,]
+sobrepeso10 <- muestra_sobrepeso[-test_sobrepeso,]
+nosobrepeso40 <- muestra_nosobrepeso[test_nosobrepeso,]
+nosobrepeso10 <-muestra_nosobrepeso[-test_nosobrepeso,]
+
+entrenamiento_con_IMC_EN <- rbind(sobrepeso40,nosobrepeso40)
+prueba_con_IMC_EN <- rbind(sobrepeso10,nosobrepeso10)
+
 borrar <-c("EN","IMC")
-muestras_sin_IMC_EN<- muestra_datos[,!(names(muestra_datos) %in% borrar)]
-nombre.variables <- colnames(muestras_sin_IMC_EN)
+entrenamiento <- entrenamiento_con_IMC_EN[,!(names(entrenamiento_con_IMC_EN) %in% borrar)]
+prueba <- prueba_con_IMC_EN[,!(names(prueba_con_IMC_EN) %in% borrar)]
+nombre.variables <- colnames(entrenamiento)
 
 # Se realiza la busqueda exaustiva con regsubsets sin considerar las variables
 # IMC y EN.
 
-#SE DEBE ARREGLAR
-predictores <- regsubsets(x=nombre.variables, 
-                          data=muestras_sin_IMC_EN, 
-                          weights=NULL, nbest=1, nvmax=8,
-                          method="exhaustive")
+# Ajustar modelo con todos los subconjuntos
+modelos <- regsubsets(Weight ~ ., data = entrenamiento,
+                      method = "exhaustive", nbest = 1, nvmax = 8)
 
-# Uso de caret
+print(plot(modelos))
+
+# Viendo la matriz obtenida, elegimos "Chest.depth", "Chest.diameter",
+# "Waist.Girth", "Hip.Girth", "Forearm.Girth", "Calf.Maximum.Girth",
+# "Age" y "Height"
+
+seleccionados <- c("Chest.depth", "Chest.diameter","Waist.Girth", "Hip.Girth", 
+                   "Forearm.Girth", "Calf.Maximum.Girth", "Age", "Height")
+
+# Uso de caret    
 
 
 

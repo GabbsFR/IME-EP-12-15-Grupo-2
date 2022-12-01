@@ -212,22 +212,20 @@ muestra_datos_parte4 <- muestra_datos[,!(names(muestra_datos) %in% borrar_p4)]
 # resampling, en este caso bootstrapping con 30 repeticiones, y las semillas para
 # cada repetición. Con el argumento returnResamp = "all" se especifica que se
 # almacene la información de todos los modelos generados en todas las repeticiones.
-ctrl_rfe <- rfeControl(functions = lmFuncs, method = "cv", number = 5,
+
+ctrl_rfe4 <- rfeControl(functions = lmFuncs, method = "cv", number = 5,
                        returnResamp = "all", allowParallel = TRUE, 
-                       verbose = FALSE,)
+                       verbose = FALSE)
 
 # Se ejecuta la eliminación recursiva de predictores
-set.seed(342)
-rf_rfe <- rfe(IMC ~ ., data = muestra_datos_parte4,
+rf_rfe4 <- rfe(IMC ~ ., data = muestra_datos_parte4,
               sizes = c(10:20),
-              metric = "Accuracy",
+              metric = "Rsquared",
               # El accuracy es la proporción de clasificaciones correctas
-              rfeControl = ctrl_rfe,
-              ntree = 500)
+              rfeControl = ctrl_rfe)
 # Dentro de rfe() se pueden especificar argumentos para el modelo empleado, por
 # ejemplo, el hiperparámetro ntree=500.
-
-print(rf_rfe)
+print(rf_rfe4)
 
 
 # 5) Usando RFE, construir un modelo de regresión logística múltiple para la variable
@@ -236,7 +234,25 @@ print(rf_rfe)
 #    el sobreajuste (obviamente no se debe considerar las variables Peso, Estatura 
 #    –Weight y Height respectivamente– ni IMC).
 
+borrar_p5 <- c("IMC","Weight","Height")
+muestra_datos_parte5 <- muestra_datos[,!(names(muestra_datos) %in% borrar_p5)]
+
+
+ctrl_rfe5 <- rfeControl(functions = lrFuncs, method = "LOOCV", number = 1,
+                       returnResamp = "all", allowParallel = TRUE, 
+                       verbose = FALSE)
+
+# Se ejecuta la eliminación recursiva de predictores
+rf_rfe5 <- rfe(EN ~ ., data = muestra_datos_parte5,
+              sizes = c(10:20),
+              metric = "Rsquared",
+              # El accuracy es la proporción de clasificaciones correctas
+              rfeControl = ctrl_rfe5)
+# Dentro de rfe() se pueden especificar argumentos para el modelo empleado, por
+# ejemplo, el hiperparámetro ntree=500.
+print(rf_rfe5)
 
 
 # 6) Pronunciarse sobre la confiabilidad y el poder predictivo de los modelos.
 
+# 

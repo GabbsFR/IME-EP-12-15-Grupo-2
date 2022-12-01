@@ -205,6 +205,33 @@ print(vifs_p4)
 
 
 
+
+
+# modelo_rfe <-rfe
+
+# Se crea un control de entrenamiento donde se define el tipo de modelo empleado
+# para la selección de variables, en este caso random forest, la estrategia de
+# resampling, en este caso bootstrapping con 30 repeticiones, y las semillas para
+# cada repetición. Con el argumento returnResamp = "all" se especifica que se
+# almacene la información de todos los modelos generados en todas las repeticiones.
+ctrl_rfe <- rfeControl(functions = lmFuncs, method = "boot", number = repeticiones,
+                       returnResamp = "all", allowParallel = TRUE, verbose = FALSE,
+                       seeds = seeds)
+
+# Se ejecuta la eliminación recursiva de predictores
+set.seed(342)
+rf_rfe <- rfe(Survived ~ ., data = datos_train_prep,
+              sizes = subsets,
+              metric = "Accuracy",
+              # El accuracy es la proporción de clasificaciones correctas
+              rfeControl = ctrl_rfe,
+              ntree = 500)
+# Dentro de rfe() se pueden especificar argumentos para el modelo empleado, por
+# ejemplo, el hiperparámetro ntree=500.
+
+
+
+
 # 5) Usando RFE, construir un modelo de regresión logística múltiple para la variable
 #    EN que incluya el conjunto, de entre dos y seis, predictores que entregue la
 #    mejor curva ROC y que utilice validación cruzada dejando uno fuera para evitar

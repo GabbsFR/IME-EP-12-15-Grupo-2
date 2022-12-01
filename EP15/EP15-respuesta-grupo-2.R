@@ -194,7 +194,6 @@ print(summary(modelo_p4))
 vifs_p4 <- vif(modelo_p4$finalModel)
 print(vifs_p4)
 
-
 # 4) Haciendo un poco de investigación sobre el paquete caret, en particular cómo 
 #    hacer Recursive Feature Elimination (RFE), construir un modelo de regresión 
 #    lineal múltiple para predecir la variable IMC que incluya entre 10 y 20 
@@ -203,9 +202,8 @@ print(vifs_p4)
 #    sobreajuste (obviamente no se debe considerar las variables Peso, Estatura 
 #    ni estado nutricional –Weight, Height, EN respectivamente).
 
-
-
-
+borrar_p4 <- c("EN","Weight","Height")
+muestra_datos_parte4 <- muestra_datos[,!(names(muestra_datos) %in% borrar_p4)]
 
 # modelo_rfe <-rfe
 
@@ -214,14 +212,14 @@ print(vifs_p4)
 # resampling, en este caso bootstrapping con 30 repeticiones, y las semillas para
 # cada repetición. Con el argumento returnResamp = "all" se especifica que se
 # almacene la información de todos los modelos generados en todas las repeticiones.
-ctrl_rfe <- rfeControl(functions = lmFuncs, method = "boot", number = repeticiones,
-                       returnResamp = "all", allowParallel = TRUE, verbose = FALSE,
-                       seeds = seeds)
+ctrl_rfe <- rfeControl(functions = lmFuncs, method = "cv", number = 5,
+                       returnResamp = "all", allowParallel = TRUE, 
+                       verbose = FALSE,)
 
 # Se ejecuta la eliminación recursiva de predictores
 set.seed(342)
-rf_rfe <- rfe(Survived ~ ., data = datos_train_prep,
-              sizes = subsets,
+rf_rfe <- rfe(IMC ~ ., data = muestra_datos_parte4,
+              sizes = c(10:20),
               metric = "Accuracy",
               # El accuracy es la proporción de clasificaciones correctas
               rfeControl = ctrl_rfe,
@@ -229,7 +227,7 @@ rf_rfe <- rfe(Survived ~ ., data = datos_train_prep,
 # Dentro de rfe() se pueden especificar argumentos para el modelo empleado, por
 # ejemplo, el hiperparámetro ntree=500.
 
-
+print(rf_rfe)
 
 
 # 5) Usando RFE, construir un modelo de regresión logística múltiple para la variable

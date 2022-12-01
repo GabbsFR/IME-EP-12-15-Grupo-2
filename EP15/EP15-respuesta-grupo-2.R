@@ -119,33 +119,15 @@ muestra_datos<- rbind(muestra_sobrepeso,muestra_nosobrepeso)
 #    luego utilizar las funciones del paquete caret para construir un modelo de regresión
 #    lineal múltiple con los predictores escogidos y evaluarlo usando bootstrapping.
 
-set.seed(19495)
-
-# Se separa el conjunto de entrenamiento y prueba 40 y 20 de cada muestra
-test_sobrepeso <- sample.int(nrow(muestra_sobrepeso),40, replace = FALSE)
-test_nosobrepeso <- sample.int(nrow(muestra_nosobrepeso),40, replace = FALSE)
-
-# Se necesita dividir el conjunto de mujeres tanto de las que estan en sobrepeso
-# como las que no lo estan ya que para ajustar el modelo, primeramente se necesita
-# un modelo de entrenamiento y otro de prueba.
-sobrepeso40 <- muestra_sobrepeso[test_sobrepeso,]
-sobrepeso10 <- muestra_sobrepeso[-test_sobrepeso,]
-nosobrepeso40 <- muestra_nosobrepeso[test_nosobrepeso,]
-nosobrepeso10 <-muestra_nosobrepeso[-test_nosobrepeso,]
-
-entrenamiento_con_IMC_EN <- rbind(sobrepeso40,nosobrepeso40)
-prueba_con_IMC_EN <- rbind(sobrepeso10,nosobrepeso10)
-
 borrar <-c("EN","IMC")
-entrenamiento <- entrenamiento_con_IMC_EN[,!(names(entrenamiento_con_IMC_EN) %in% borrar)]
-prueba <- prueba_con_IMC_EN[,!(names(prueba_con_IMC_EN) %in% borrar)]
-nombre.variables <- colnames(entrenamiento)
+muestra_sin_EN_IMC <- muestra_datos[,!(names(muestra_datos) %in% borrar)]
+nombre.variables <- colnames(muestra_sin_EN_IMC)
 
 # Se realiza la busqueda exaustiva con regsubsets sin considerar las variables
 # IMC y EN.
 
 # Ajustar modelo con todos los subconjuntos
-modelos <- regsubsets(Weight ~ ., data = entrenamiento,
+modelos <- regsubsets(Weight ~ ., data = muestra_sin_EN_IMC,
                       method = "exhaustive", nbest = 1, nvmax = 8)
 
 print(plot(modelos))
@@ -154,11 +136,59 @@ print(plot(modelos))
 # "Waist.Girth", "Hip.Girth", "Forearm.Girth", "Calf.Maximum.Girth",
 # "Age" y "Height"
 
-seleccionados <- c("Chest.depth", "Chest.diameter","Waist.Girth", "Hip.Girth", 
-                   "Forearm.Girth", "Calf.Maximum.Girth", "Age", "Height")
+seleccionados_mas_peso <- c("Chest.depth", "Chest.diameter","Waist.Girth", "Hip.Girth", 
+                   "Forearm.Girth", "Calf.Maximum.Girth", "Age", "Height","Weight")
+muestra_datos_modelo <- muestra_sin_EN_IMC %>%select(seleccionados_mas_peso)
 
 # Uso de caret    
 
+# Ajustar modelo usando validación cruzada de 5 pliegues.
+modelo <- train(Weight ~ ., data = muestra_datos_modelo, method = "lm",
+                trControl = trainControl(method = "boot", number = 5))
+print(summary(modelo))
+
+vifs <- vif(modelo$finalModel)
+print(vifs)
+
+muestra_datos_modelo_p1 <- muestra_datos_modelo %>% select(!"Waist.Girth")
+
+# Ajustar modelo usando validación cruzada de 5 pliegues.
+modelo_p1 <- train(Weight ~ ., data = muestra_datos_modelo_p1, method = "lm",
+                trControl = trainControl(method = "boot", number = 5))
+print(summary(modelo_p1))
+
+vifs_p1 <- vif(modelo_p1$finalModel)
+print(vifs_p1)
+
+
+muestra_datos_modelo_p2 <- muestra_datos_modelo_p1 %>% select(!"Age")
+
+# Ajustar modelo usando validación cruzada de 5 pliegues.
+modelo_p2 <- train(Weight ~ ., data = muestra_datos_modelo_p2, method = "lm",
+                   trControl = trainControl(method = "boot", number = 5))
+print(summary(modelo_p2))
+
+vifs_p2 <- vif(modelo_p2$finalModel)
+print(vifs_p2)
+
+muestra_datos_modelo_p3 <- muestra_datos_modelo_p2 %>% select(!"Forearm.Girth")
+
+# Ajustar modelo usando validación cruzada de 5 pliegues.
+modelo_p3 <- train(Weight ~ ., data = muestra_datos_modelo_p3, method = "lm",
+                   trControl = trainControl(method = "boot", number = 5))
+print(summary(modelo_p3))
+
+vifs_p3 <- vif(modelo_p3$finalModel)
+print(vifs_p3)
+
+muestra_datos_modelo_p4 <- muestra_datos_modelo_p3 %>% select(!"Chest.diameter")
+# Ajustar modelo usando validación cruzada de 5 pliegues.
+modelo_p4 <- train(Weight ~ ., data = muestra_datos_modelo_p4, method = "lm",
+                   trControl = trainControl(method = "boot", number = 5))
+print(summary(modelo_p4))
+
+vifs_p4 <- vif(modelo_p4$finalModel)
+print(vifs_p4)
 
 
 # 4) Haciendo un poco de investigación sobre el paquete caret, en particular cómo 

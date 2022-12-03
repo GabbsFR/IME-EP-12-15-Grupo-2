@@ -100,16 +100,16 @@ datos[["EN"]] <- factor(condicion)
 # 2) Seleccionar una muestra de 100 personas, asegurando que la mitad tenga estado
 #    nutricional “sobrepeso” y la otra mitad “no sobrepeso”.
 
-# a diferencia de los ejercicos practicos anteriores, se debe seleccionar 100 
+# A diferencia de los ejercicos practicos anteriores, se debe seleccionar 100 
 # personas, independiente del sexo, solo se requiere asegurar que la mitad este
 # sobrepeso y la otra mitad que no lo esté.
 
-# Se saca las 50 muestras con sobrepeso y las 50 sin sobrepeso
+# Se sacan las 50 muestras con sobrepeso y las 50 sin sobrepeso
 sobrepeso <- datos %>% filter(EN == 1)
 muestra_sobrepeso <- sobrepeso[sample(nrow(sobrepeso),50),]
 noSobrepeso <- datos %>% filter(EN == 0)
 muestra_nosobrepeso <- noSobrepeso[sample(nrow(noSobrepeso),50),]
-# se crea la variable muestra_datos, con las 100 personas solicitadas.
+# Se crea la variable muestra_datos, con las 100 personas solicitadas.
 muestra_datos<- rbind(muestra_sobrepeso,muestra_nosobrepeso)
 
 
@@ -141,14 +141,14 @@ seleccionados_mas_peso <- c("Chest.depth", "Chest.diameter","Waist.Girth", "Hip.
                    "Forearm.Girth", "Calf.Maximum.Girth", "Age", "Height","Weight")
 muestra_datos_modelo <- muestra_sin_EN_IMC %>%select(seleccionados_mas_peso)
 
-# Usamo caret para ajustar el modelo.    
+# Se utiliza caret para ajustar el modelo.    
 
 # Ajustar modelo usando validación cruzada de 5 pliegues.
 modelo <- train(Weight ~ ., data = muestra_datos_modelo, method = "lm",
                 trControl = trainControl(method = "boot", number = 5))
 print(summary(modelo))
 
-
+# Se muestran los vifs del modelo.
 vifs <- vif(modelo$finalModel)
 print(vifs)
 
@@ -191,6 +191,7 @@ modelo_p4 <- train(Weight ~ ., data = muestra_datos_modelo_p4, method = "lm",
                    trControl = trainControl(method = "boot", number = 5))
 print(summary(modelo_p4))
 
+# Se muestran los vifs del modelo.
 vifs_p4 <- vif(modelo_p4$finalModel)
 print(vifs_p4)
 
@@ -204,8 +205,6 @@ print(vifs_p4)
 
 borrar_p4 <- c("EN","Weight","Height")
 muestra_datos_parte4 <- muestra_datos[,!(names(muestra_datos) %in% borrar_p4)]
-
-# modelo_rfe <-rfe
 
 # Se crea un control de entrenamiento donde se define el tipo de modelo empleado
 # para la selección de variables, en este caso random forest, la estrategia de
@@ -222,11 +221,10 @@ rf_rfe4 <- rfe(IMC ~ ., data = muestra_datos_parte4,
               sizes = c(10:20),
               metric = "Rsquared",
               # El accuracy es la proporción de clasificaciones correctas
-              rfeControl = ctrl_rfe)
+              rfeControl = ctrl_rfe4)
 # Dentro de rfe() se pueden especificar argumentos para el modelo empleado, por
 # ejemplo, el hiperparámetro ntree=500.
 print(rf_rfe4)
-
 
 # 5) Usando RFE, construir un modelo de regresión logística múltiple para la variable
 #    EN que incluya el conjunto, de entre dos y seis, predictores que entregue la
@@ -254,5 +252,7 @@ print(rf_rfe5)
 
 
 # 6) Pronunciarse sobre la confiabilidad y el poder predictivo de los modelos.
-
-# 
+# El primer modelo tiene un R2 de 0.91, lo que indica que el modelo explica el 91% de la variabilidad.
+# En el segundo modelo, se obtiene que se maximiza el R2 con 18 variables, obteniendo un R2 de 0.8896, lo que indica que el modelo explica el 89% de la variabilidad.
+# Y en el último modelo se puede apreciar que se maximiza el ROC para 10 variables, con un 91% ROC, 86%
+# de sensibilidad y 80% de especificidad. Por lo tanto, se puede concluir que el modelo es confiable y tiene un poder predictivo alto.
